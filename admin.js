@@ -71,8 +71,8 @@
       <li class="admin-item" style="--c: var(--c-${esc(ev.category)})">
         <div class="when">${esc(short)}<br>${esc(A.timeLabel(ev))}</div>
         <div>
-          <div class="t">${esc(ev.title)}${ev.published ? '' : '<span class="badge">Oculto</span>'}</div>
-          <div class="sub">${esc(A.CATEGORIES[ev.category])}${ev.location ? ' · ' + esc(ev.location) : ''}</div>
+          <div class="t">${esc(ev.title)}${ev.published ? '' : '<span class="badge">Oculto</span>'}${ev.status && ev.status !== 'activo' ? `<span class="badge">${esc(A.STATUSES[ev.status])}</span>` : ''}</div>
+          <div class="sub">${esc(A.CATEGORIES[ev.category])} · ${esc(A.CAREERS[ev.audience] || A.CAREERS.todas)}${ev.location ? ' · ' + esc(ev.location) : ''}</div>
         </div>
         <div class="ops">
           ${confirming
@@ -125,6 +125,9 @@
   // ── Formulario ─────────────────────────────────────────
   $('f-category').innerHTML = Object.entries(A.CATEGORIES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
 
+  $('f-audience').innerHTML = Object.entries(A.CAREERS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  $('f-status').innerHTML = Object.entries(A.STATUSES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+
   function syncAllDay() {
     const all = $('f-allday').checked;
     $('w-start').hidden = all;
@@ -164,6 +167,8 @@
       const s = A.startKey(ev), e = A.endKey(ev);
       $('f-title').value = ev.title;
       $('f-category').value = ev.category;
+      $('f-audience').value = ev.audience || 'todas';
+      $('f-status').value = isCopy ? 'activo' : ev.status || 'activo';
       $('f-location').value = ev.location || '';
       $('f-date').value = s;
       $('f-enddate').value = e !== s ? e : '';
@@ -255,6 +260,8 @@
       const row = {
         title, starts_at, ends_at, all_day: allDay,
         category: $('f-category').value,
+        audience: $('f-audience').value,
+        status: $('f-status').value,
         location: $('f-location').value.trim(),
         description: $('f-description').value.trim(),
         signup_url: signup,

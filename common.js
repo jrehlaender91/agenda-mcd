@@ -19,6 +19,10 @@ const AGENDA = (() => {
     otro: 'Otro',
   };
 
+  const CAREERS = { todas: 'Todas las carreras', lc: 'LC', ltm: 'LTM' };
+  const STATUSES = { activo: 'Activo', cancelado: 'Cancelado', reprogramado: 'Reprogramado' };
+  const FEED_URL = SUPABASE_URL + '/functions/v1/agenda-ics';
+
   const esc = (s) =>
     String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -83,5 +87,5 @@ const AGENDA = (() => {
     return `${clean(dm.format(keyDate(s)))} – ${clean(dm.format(keyDate(e)))}`;
   };
 
-  return { isInst, shortDate, SUPABASE_URL, SUPABASE_KEY, TZ, TZ_OFFSET, CATEGORIES, esc, safeUrl, fmt, utcFmt, cap, dayKey, hhmm, keyDate, addDays, startKey, endKey, timeLabel, dateLabel };
+  return { CAREERS, STATUSES, FEED_URL, isInst, shortDate, SUPABASE_URL, SUPABASE_KEY, TZ, TZ_OFFSET, CATEGORIES, esc, safeUrl, fmt, utcFmt, cap, dayKey, hhmm, keyDate, addDays, startKey, endKey, timeLabel, dateLabel };
 })();

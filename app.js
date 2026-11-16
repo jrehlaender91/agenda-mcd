@@ -9,11 +9,16 @@
   const state = {
     events: [],
     category: 'todos',
+    career: 'todas',
     view: 'list',
     showPast: false,
     month: A.dayKey(new Date()).slice(0, 7), // 'YYYY-MM'
     selectedDay: null,
   };
+  try {
+    const saved = localStorage.getItem('agenda-carrera');
+    if (saved === 'lc' || saved === 'ltm') state.career = saved;
+  } catch { /* sin almacenamiento: se usa "todas" */ }
   const todayKey = () => A.dayKey(new Date());
 
   // ── Datos ──────────────────────────────────────────────
@@ -33,8 +38,17 @@
     }
   }
 
+  /** Con una carrera elegida se ven sus eventos y los que son para todas. */
+  const byCareer = () =>
+    state.career === 'todas' ? state.events : state.events.filter((e) => !e.audience || e.audience === 'todas' || e.audience === state.career);
   const filtered = () =>
-    state.category === 'todos' ? state.events : state.events.filter((e) => e.category === state.category);
+    state.category === 'todos' ? byCareer() : byCareer().filter((e) => e.category === state.category);
+
+  const statusPill = (ev) =>
+    ev.status === 'cancelado' || ev.status === 'reprogramado' ? `<span class="pill ${ev.status}">${A.STATUSES[ev.status]}</span>` : '';
+  const careerPill = (ev) =>
+    ev.audience === 'lc' || ev.audience === 'ltm' ? `<span class="pill">${A.CAREERS[ev.audience]}</span>` : '';
+  const cancelledClass = (ev) => (ev.status === 'cancelado' ? ' is-cancelled' : '');
 
   // ── Piezas ─────────────────────────────────────────────
   function relLabel(ev) {
@@ -48,9 +62,10 @@
     if (A.isInst(ev)) {
       const past = A.endKey(ev) < todayKey();
       return `
-      <li class="event inst${past ? ' past' : ''}">
+      <li class="event inst${past ? ' past' : ''}${cancelledClass(ev)}">
         <span class="inst-date">${esc(A.shortDate(ev))}</span>
         <a class="inst-title" href="#e-${esc(ev.id)}">${esc(ev.title)}</a>
+        ${statusPill(ev)}${careerPill(ev)}
       </li>`;
     }
     const s = A.startKey(ev);
@@ -61,14 +76,17 @@
     const past = A.endKey(ev) < todayKey();
     const img = A.safeUrl(ev.image_url);
     return `
-      <li class="event${past ? ' past' : ''}" style="--c: var(--c-${esc(ev.category)})">
+      <li class="event${past ? ' past' : ''}${cancelledClass(ev)}" style="--c: var(--c-${esc(ev.category)})">
         <div class="event-date">
           <span class="dow">${esc(dow)}</span>
           <span class="num">${Number(s.slice(8))}</span>
-          ${rel ? `<span class="rel">${rel}</span>` : ''}
+          ${rel && ev.status !== 'cancelado' ? `<span class="rel">${rel}</span>` : ''}
         </div>
         <div class="event-body">
-          <span class="tag"><span class="dot"></span>${esc(A.CATEGORIES[ev.category] || 'Evento')}</span>
+          <div class="tagline">
+            <span class="tag"><span class="dot"></span>${esc(A.CATEGORIES[ev.category] || 'Evento')}</span>
+            ${statusPill(ev)}${careerPill(ev)}
+          </div>
           <h3 class="event-title"><a href="#e-${esc(ev.id)}">${esc(ev.title)}</a></h3>
           <div class="meta">
             <span class="time">${esc(multi ? A.dateLabel(ev) : A.timeLabel(ev))}</span>
@@ -151,7 +169,7 @@
         <button type="button" class="cal-day${k === t ? ' is-today' : ''}${inst.length ? ' inst' : ''}" data-day="${k}" aria-pressed="${k === state.selectedDay}" aria-label="${esc(label)}">
           <span class="n">${d}</span>
           ${inst.slice(0, 1).map((e) => `<span class="cal-ev inst">${esc(e.title)}</span>`).join('')}
-          ${evs.slice(0, room).map((e) => `<span class="cal-ev" style="--c: var(--c-${esc(e.category)})">${esc(e.title)}</span>`).join('')}
+          ${evs.slice(0, room).map((e) => `<span class="cal-ev${cancelledClass(e)}" style="--c: var(--c-${esc(e.category)})">${esc(e.title)}</span>`).join('')}
           ${evs.length > room ? `<span class="cal-more">+${evs.length - room} más</span>` : ''}
           <span class="cal-dots">${evs.slice(0, 4).map((e) => `<i style="--c: var(--c-${esc(e.category)})"></i>`).join('')}</span>
         </button>`;
@@ -191,7 +209,8 @@
 
   // ── Barra ──────────────────────────────────────────────
   function renderChips() {
-    const used = new Set(state.events.map((e) => e.category));
+    const used = new Set(byCareer().map((e) => e.category));
+    if (state.category !== 'todos' && !used.has(state.category)) state.category = 'todos';
     const cats = Object.keys(A.CATEGORIES).filter((c) => used.has(c));
     $('chips').innerHTML =
       `<button type="button" class="chip" data-cat="todos" aria-pressed="${state.category === 'todos'}">Todos</button>` +
@@ -203,6 +222,7 @@
 
   function render() {
     renderChips();
+    document.querySelectorAll('#career button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.career === state.career));
     $('view-list').setAttribute('aria-pressed', state.view === 'list');
     $('view-month').setAttribute('aria-pressed', state.view === 'month');
     state.view === 'list' ? renderList() : renderMonth();
@@ -230,7 +250,7 @@
       `UID:${ev.id}@agenda-medios`, `DTSTAMP:${stamp(new Date())}`,
       r.allDay ? `DTSTART;VALUE=DATE:${r.start}` : `DTSTART:${r.start}`,
       r.allDay ? `DTEND;VALUE=DATE:${r.end}` : `DTEND:${r.end}`,
-      `SUMMARY:${t(ev.title)}`, `DESCRIPTION:${t(ev.description)}`, `LOCATION:${t(ev.location)}`,
+      `SUMMARY:${t(ev.title)}`, `STATUS:${ev.status === 'cancelado' ? 'CANCELLED' : 'CONFIRMED'}`, `DESCRIPTION:${t(ev.description)}`, `LOCATION:${t(ev.location)}`,
       'END:VEVENT', 'END:VCALENDAR',
     ];
     return new Blob([lines.join('\r\n')], { type: 'text/calendar' });
@@ -241,29 +261,37 @@
     const img = inst ? null : A.safeUrl(ev.image_url);
     const signup = inst ? null : A.safeUrl(ev.signup_url);
     const multi = A.endKey(ev) !== A.startKey(ev);
+    const cancelled = ev.status === 'cancelado';
+    const notice = cancelled
+      ? '<p class="notice cancelado">Este evento fue cancelado.</p>'
+      : ev.status === 'reprogramado' ? '<p class="notice">Este evento cambió de fecha u horario. Los datos de abajo son los nuevos.</p>' : '';
     detail.style.setProperty('--c', `var(--c-${ev.category})`);
     detail.innerHTML = `
       <div class="sheet">
         <div class="sheet-top">
-          <span class="tag"><span class="dot"></span>${esc(A.CATEGORIES[ev.category] || 'Evento')}</span>
+          <div class="tagline">
+            <span class="tag"><span class="dot"></span>${esc(A.CATEGORIES[ev.category] || 'Evento')}</span>
+            ${careerPill(ev)}
+          </div>
           <button type="button" class="close" id="detail-close" aria-label="Cerrar">✕</button>
         </div>
-        <h2 id="detail-title">${esc(ev.title)}</h2>
+        <h2 id="detail-title"${cancelled ? ' class="is-cancelled"' : ''}>${esc(ev.title)}</h2>
+        ${notice}
         <dl class="facts">
           <dt>Cuándo</dt><dd>${esc(A.dateLabel(ev))}${ev.all_day && (multi || inst) ? '' : ' · ' + esc(A.timeLabel(ev))}</dd>
           ${ev.location ? `<dt>Dónde</dt><dd>${esc(ev.location)}</dd>` : ''}
         </dl>
         ${ev.description ? `<p class="desc">${esc(ev.description)}</p>` : ''}
         <div class="actions">
-          ${signup ? `<a class="btn primary" href="${esc(signup)}" target="_blank" rel="noopener">Inscribirme</a>` : ''}
-          <a class="btn" href="${esc(googleUrl(ev))}" target="_blank" rel="noopener">Agregar a Google Calendar</a>
-          <button type="button" class="btn" id="detail-ics">Apple / Outlook</button>
+          ${signup && !cancelled ? `<a class="btn primary" href="${esc(signup)}" target="_blank" rel="noopener">Inscribirme</a>` : ''}
+          ${cancelled ? '' : `<a class="btn" href="${esc(googleUrl(ev))}" target="_blank" rel="noopener">Agregar a Google Calendar</a>
+          <button type="button" class="btn" id="detail-ics">Apple / Outlook</button>`}
           <button type="button" class="btn" id="detail-copy">Copiar enlace</button>
         </div>
         ${img ? `<a href="${esc(img)}" target="_blank" rel="noopener"><img class="poster" src="${esc(img)}" alt="Afiche de ${esc(ev.title)}"></a>` : ''}
       </div>`;
     $('detail-close').onclick = () => detail.close();
-    $('detail-ics').onclick = () => {
+    if ($('detail-ics')) $('detail-ics').onclick = () => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(icsFile(ev));
       a.download = 'evento.ics';
@@ -276,6 +304,51 @@
         e.target.textContent = 'Enlace copiado';
       } catch {
         e.target.textContent = 'No se pudo copiar';
+      }
+    };
+    if (!detail.open) detail.showModal();
+  }
+
+  // ── Suscripción al calendario ──────────────────────────
+  function openSubscribe() {
+    const c = state.career;
+    const url = A.FEED_URL + (c === 'todas' ? '' : `?carrera=${c}`);
+    const webcal = url.replace(/^https:/, 'webcal:');
+    const google = 'https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(webcal);
+    const scope = c === 'todas' ? 'todos los eventos' : `los eventos de ${A.CAREERS[c]} y los generales`;
+    detail.style.setProperty('--c', 'var(--accent)');
+    detail.innerHTML = `
+      <div class="sheet">
+        <div class="sheet-top">
+          <span class="tag"><span class="dot"></span>Suscripción</span>
+          <button type="button" class="close" id="detail-close" aria-label="Cerrar">✕</button>
+        </div>
+        <h2 id="detail-title">La agenda, en tu calendario</h2>
+        <p class="desc">Agrega ${scope} a tu calendario personal. Los eventos nuevos y los cambios aparecen solos, sin volver a entrar aquí.</p>
+        <div class="actions">
+          <a class="btn primary" href="${esc(google)}" target="_blank" rel="noopener">Google Calendar</a>
+          <a class="btn" href="${esc(webcal)}">iPhone / Mac / Outlook</a>
+        </div>
+        <ol class="steps">
+          <li>Elige tu calendario y confirma la suscripción.</li>
+          <li>Tu calendario revisa los cambios por su cuenta; Google puede tardar varias horas en reflejarlos.</li>
+          <li>Para cambiar de carrera, cierra esta ventana, elige LC o LTM arriba y vuelve a suscribirte.</li>
+        </ol>
+        <div class="field">
+          <span style="font-size:.85rem;font-weight:600">¿No se abrió? Copia la dirección y pégala en «Agregar calendario por URL».</span>
+          <div class="copy-row">
+            <input class="input" id="feed-url" readonly value="${esc(url)}" aria-label="Dirección del calendario">
+            <button type="button" class="btn" id="feed-copy">Copiar</button>
+          </div>
+        </div>
+      </div>`;
+    $('detail-close').onclick = () => detail.close();
+    $('feed-copy').onclick = async (e) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        e.target.textContent = 'Copiada';
+      } catch {
+        $('feed-url').select();
       }
     };
     if (!detail.open) detail.showModal();
@@ -295,6 +368,14 @@
 
   // ── Arranque ───────────────────────────────────────────
   $('today').textContent = 'Hoy es ' + A.fmt({ weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  $('subscribe').onclick = openSubscribe;
+  document.querySelectorAll('#career button').forEach((b) => {
+    b.onclick = () => {
+      state.career = b.dataset.career;
+      try { localStorage.setItem('agenda-carrera', state.career); } catch { /* opcional */ }
+      render();
+    };
+  });
   $('view-list').onclick = () => { state.view = 'list'; render(); };
   $('view-month').onclick = () => { state.view = 'month'; render(); };
   load();

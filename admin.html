@@ -75,10 +75,14 @@
           <select class="input" id="f-category"></select>
           <small id="inst-hint" hidden>Fechas académicas: se muestran como una línea discreta, sin afiche ni inscripción.</small>
         </label>
-        <label class="field"><span>Lugar</span>
-          <input class="input" id="f-location" placeholder="Ej. Sala de proyección, Aulas 4">
+        <label class="field"><span>Para</span>
+          <select class="input" id="f-audience"></select>
         </label>
       </div>
+
+      <label class="field"><span>Lugar</span>
+        <input class="input" id="f-location" placeholder="Ej. Sala de proyección, Aulas 4">
+      </label>
 
       <div class="row">
         <label class="field"><span>Fecha</span>
@@ -114,6 +118,11 @@
           <button type="button" class="btn small danger" id="f-remove-image" hidden>Quitar imagen</button>
         </div>
       </div>
+
+      <label class="field" id="w-status"><span>Estado</span>
+        <select class="input" id="f-status"></select>
+        <small>Si se cancela o cambia de fecha, márcalo aquí en vez de borrarlo: los alumnos verán el aviso.</small>
+      </label>
 
       <label class="check"><input type="checkbox" id="f-published" checked> Visible para los alumnos</label>
 
