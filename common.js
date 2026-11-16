@@ -15,6 +15,7 @@ const AGENDA = (() => {
     proyeccion: 'Proyección',
     exposicion: 'Exposición',
     convocatoria: 'Convocatoria',
+    institucional: 'Institucional',
     otro: 'Otro',
   };
 
@@ -70,5 +71,17 @@ const AGENDA = (() => {
     return `${dm.format(keyDate(s))} – ${dm.format(keyDate(e))}`;
   };
 
-  return { SUPABASE_URL, SUPABASE_KEY, TZ, TZ_OFFSET, CATEGORIES, esc, safeUrl, fmt, utcFmt, cap, dayKey, hhmm, keyDate, addDays, startKey, endKey, timeLabel, dateLabel };
+  /** Fechas del calendario académico: se muestran discretas, sin afiche ni inscripción. */
+  const isInst = (ev) => ev.category === 'institucional';
+
+  /** "lun 30 nov" o "21 dic – 8 ene": fecha compacta para las líneas institucionales. */
+  const shortDate = (ev) => {
+    const s = startKey(ev), e = endKey(ev);
+    const clean = (x) => x.replace(/[.,]/g, '').replace(/ de /g, ' ');
+    if (s === e) return clean(utcFmt({ weekday: 'short', day: 'numeric', month: 'short' }).format(keyDate(s)));
+    const dm = utcFmt({ day: 'numeric', month: 'short' });
+    return `${clean(dm.format(keyDate(s)))} – ${clean(dm.format(keyDate(e)))}`;
+  };
+
+  return { isInst, shortDate, SUPABASE_URL, SUPABASE_KEY, TZ, TZ_OFFSET, CATEGORIES, esc, safeUrl, fmt, utcFmt, cap, dayKey, hhmm, keyDate, addDays, startKey, endKey, timeLabel, dateLabel };
 })();

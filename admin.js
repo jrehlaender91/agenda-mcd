@@ -132,6 +132,16 @@
   }
   $('f-allday').onchange = syncAllDay;
 
+  /** Las fechas institucionales no llevan afiche ni inscripción y suelen durar todo el día. */
+  function syncCategory(userChanged) {
+    const inst = $('f-category').value === 'institucional';
+    $('w-signup').hidden = inst;
+    $('w-image').hidden = inst;
+    $('inst-hint').hidden = !inst;
+    if (inst && userChanged) { $('f-allday').checked = true; syncAllDay(); }
+  }
+  $('f-category').onchange = () => syncCategory(true);
+
   function setPreview(url) {
     imageUrl = url || null;
     $('f-preview').hidden = !imageUrl;
@@ -170,6 +180,7 @@
       setPreview(null);
     }
     syncAllDay();
+    syncCategory(false);
     $('editor').showModal();
     $('f-title').focus();
   }
@@ -219,7 +230,8 @@
     const start = $('f-start').value;
     const end = $('f-end').value;
     const endDate = $('f-enddate').value;
-    const signupRaw = $('f-signup').value.trim();
+    const inst = $('f-category').value === 'institucional';
+    const signupRaw = inst ? '' : $('f-signup').value.trim();
 
     if (!title) return setMsg('form-msg', 'Ponle un título al evento.');
     if (!date) return setMsg('form-msg', 'Elige la fecha del evento.');
@@ -237,9 +249,9 @@
 
     $('save').disabled = true;
     try {
-      const file = $('f-image').files[0];
+      const file = inst ? null : $('f-image').files[0];
       const previous = editing ? editing.image_url : null;
-      const image_url = file ? await uploadImage(file) : imageUrl;
+      const image_url = inst ? null : file ? await uploadImage(file) : imageUrl;
       const row = {
         title, starts_at, ends_at, all_day: allDay,
         category: $('f-category').value,

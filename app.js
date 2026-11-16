@@ -45,6 +45,14 @@
   }
 
   function card(ev) {
+    if (A.isInst(ev)) {
+      const past = A.endKey(ev) < todayKey();
+      return `
+      <li class="event inst${past ? ' past' : ''}">
+        <span class="inst-date">${esc(A.shortDate(ev))}</span>
+        <a class="inst-title" href="#e-${esc(ev.id)}">${esc(ev.title)}</a>
+      </li>`;
+    }
     const s = A.startKey(ev);
     const d = A.keyDate(s);
     const dow = A.utcFmt({ weekday: 'short' }).format(d).replace('.', '');
@@ -134,13 +142,17 @@
     cells += '<div class="cal-day blank"></div>'.repeat(lead);
     for (let d = 1; d <= daysInMonth; d++) {
       const k = `${state.month}-${String(d).padStart(2, '0')}`;
-      const evs = byDay.get(k) || [];
-      const label = A.utcFmt({ day: 'numeric', month: 'long' }).format(A.keyDate(k)) + (evs.length ? `, ${evs.length} evento${evs.length > 1 ? 's' : ''}` : '');
+      const all = byDay.get(k) || [];
+      const inst = all.filter(A.isInst);
+      const evs = all.filter((e) => !A.isInst(e));
+      const room = inst.length ? 1 : 2;
+      const label = A.utcFmt({ day: 'numeric', month: 'long' }).format(A.keyDate(k)) + (inst.length ? `, ${inst.map((e) => e.title).join(', ')}` : '') + (evs.length ? `, ${evs.length} evento${evs.length > 1 ? 's' : ''}` : '');
       cells += `
-        <button type="button" class="cal-day${k === t ? ' is-today' : ''}" data-day="${k}" aria-pressed="${k === state.selectedDay}" aria-label="${esc(label)}">
+        <button type="button" class="cal-day${k === t ? ' is-today' : ''}${inst.length ? ' inst' : ''}" data-day="${k}" aria-pressed="${k === state.selectedDay}" aria-label="${esc(label)}">
           <span class="n">${d}</span>
-          ${evs.slice(0, 2).map((e) => `<span class="cal-ev" style="--c: var(--c-${esc(e.category)})">${esc(e.title)}</span>`).join('')}
-          ${evs.length > 2 ? `<span class="cal-more">+${evs.length - 2} más</span>` : ''}
+          ${inst.slice(0, 1).map((e) => `<span class="cal-ev inst">${esc(e.title)}</span>`).join('')}
+          ${evs.slice(0, room).map((e) => `<span class="cal-ev" style="--c: var(--c-${esc(e.category)})">${esc(e.title)}</span>`).join('')}
+          ${evs.length > room ? `<span class="cal-more">+${evs.length - room} más</span>` : ''}
           <span class="cal-dots">${evs.slice(0, 4).map((e) => `<i style="--c: var(--c-${esc(e.category)})"></i>`).join('')}</span>
         </button>`;
     }
@@ -225,8 +237,9 @@
   }
 
   function openDetail(ev) {
-    const img = A.safeUrl(ev.image_url);
-    const signup = A.safeUrl(ev.signup_url);
+    const inst = A.isInst(ev);
+    const img = inst ? null : A.safeUrl(ev.image_url);
+    const signup = inst ? null : A.safeUrl(ev.signup_url);
     const multi = A.endKey(ev) !== A.startKey(ev);
     detail.style.setProperty('--c', `var(--c-${ev.category})`);
     detail.innerHTML = `
@@ -237,7 +250,7 @@
         </div>
         <h2 id="detail-title">${esc(ev.title)}</h2>
         <dl class="facts">
-          <dt>Cuándo</dt><dd>${esc(A.dateLabel(ev))}${multi && ev.all_day ? '' : ' · ' + esc(A.timeLabel(ev))}</dd>
+          <dt>Cuándo</dt><dd>${esc(A.dateLabel(ev))}${ev.all_day && (multi || inst) ? '' : ' · ' + esc(A.timeLabel(ev))}</dd>
           ${ev.location ? `<dt>Dónde</dt><dd>${esc(ev.location)}</dd>` : ''}
         </dl>
         ${ev.description ? `<p class="desc">${esc(ev.description)}</p>` : ''}

@@ -20,6 +20,8 @@
   --c-exposicion: #0a7f72;
   --c-convocatoria: #8f6600;
   --c-otro: #55607a;
+  --c-institucional: #6b7390;
+  --inst-bg: #e4e7f0;
 
   --display: 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif;
   --body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -47,6 +49,8 @@
     --c-exposicion: #4fd3c2;
     --c-convocatoria: #e6bd4a;
     --c-otro: #a3adc8;
+    --c-institucional: #8d95b3;
+    --inst-bg: #222844;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
     color-scheme: dark;
   }
@@ -250,6 +254,24 @@ main.wrap { padding-block: 8px 64px; }
   background: var(--line);
 }
 
+/* Fechas institucionales: una línea discreta entre las tarjetas */
+.event.inst {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 14px;
+  flex-wrap: wrap;
+  padding: 2px 16px;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+}
+.event.inst:hover { border: 0; box-shadow: none; transform: none; color: var(--ink); }
+.event.inst .inst-date { flex: none; font: 500 0.8rem/1.6 var(--mono); }
+.event.inst .inst-title { font-size: 0.93rem; font-weight: 500; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.event.inst .inst-title::after { content: ''; position: absolute; inset: 0; }
+.event.inst:hover .inst-title { text-decoration: underline; text-underline-offset: 3px; }
+
 .state {
   margin: 48px auto;
   max-width: 34ch;
@@ -324,6 +346,8 @@ main.wrap { padding-block: 8px 64px; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.cal-day.inst { background: var(--inst-bg); }
+.cal-ev.inst { padding-left: 0; border-left: 0; color: var(--muted); white-space: normal; }
 .cal-more { font-size: 0.7rem; color: var(--muted); padding-left: 8px; }
 .cal-dots { display: none; gap: 3px; flex-wrap: wrap; }
 .cal-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
@@ -483,6 +507,7 @@ textarea.input { min-height: 120px; resize: vertical; }
   .event-date .num { font-size: 1.85rem; }
   .cal-day { min-height: 52px; padding: 5px; align-items: center; }
   .cal-ev, .cal-more { display: none; }
+  .event.inst { padding: 2px 14px; }
   .cal-dots { display: flex; justify-content: center; }
   .sheet { padding: 18px; }
   .admin-item { grid-template-columns: minmax(0, 1fr); gap: 8px; }

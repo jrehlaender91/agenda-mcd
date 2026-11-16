@@ -73,6 +73,7 @@
       <div class="row">
         <label class="field"><span>Tipo</span>
           <select class="input" id="f-category"></select>
+          <small id="inst-hint" hidden>Fechas académicas: se muestran como una línea discreta, sin afiche ni inscripción.</small>
         </label>
         <label class="field"><span>Lugar</span>
           <input class="input" id="f-location" placeholder="Ej. Sala de proyección, Aulas 4">
@@ -102,11 +103,11 @@
         <textarea class="input" id="f-description" placeholder="¿De qué trata? ¿Quién lo imparte? ¿Hay que llevar algo?"></textarea>
       </label>
 
-      <label class="field"><span>Enlace de inscripción <small>(opcional)</small></span>
+      <label class="field" id="w-signup"><span>Enlace de inscripción <small>(opcional)</small></span>
         <input class="input" id="f-signup" type="url" inputmode="url" placeholder="https://…">
       </label>
 
-      <div class="field"><span>Imagen o afiche <small>(opcional)</small></span>
+      <div class="field" id="w-image"><span>Imagen o afiche <small>(opcional)</small></span>
         <div class="upload">
           <img id="f-preview" alt="" hidden>
           <input id="f-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
