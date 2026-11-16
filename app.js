@@ -97,7 +97,25 @@
       </li>`;
   }
 
-  function groupByMonth(events) {
+  const isToday = (ev) => { const t = todayKey(); return A.startKey(ev) <= t && t <= A.endKey(ev); };
+
+  /** Tarjetas de un mes; en la lista de próximos marca dónde empieza y termina "hoy". */
+  function monthItems(list, markToday) {
+    let html = '', open = false;
+    for (const ev of list) {
+      const today = markToday && isToday(ev);
+      if (today && !open) { html += '<li class="now" aria-hidden="true">Hoy</li>'; open = true; }
+      if (!today && open) { html += '<li class="now later" aria-hidden="true">Más adelante</li>'; open = false; }
+      html += card(ev);
+    }
+    return html;
+  }
+
+  const EMPTY_ART = `<svg viewBox="0 0 84 84" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="12" y="18" width="60" height="54" rx="9"/><path d="M12 33h60M28 11v13M56 11v13"/>
+    <path class="hl" d="M31 52h22"/></svg>`;
+
+  function groupByMonth(events, markToday) {
     const groups = new Map();
     for (const ev of events) {
       const k = A.startKey(ev).slice(0, 7);
@@ -107,7 +125,7 @@
     return [...groups].map(([k, list]) => {
       const d = A.keyDate(k + '-01');
       const name = A.cap(A.utcFmt({ month: 'long' }).format(d));
-      return `<h2 class="month-title">${name} <span>${k.slice(0, 4)}</span></h2><ul class="events">${list.map(card).join('')}</ul>`;
+      return `<h2 class="month-title">${name} <span>${k.slice(0, 4)}</span></h2><ul class="events">${monthItems(list, markToday)}</ul>`;
     }).join('');
   }
 
@@ -119,16 +137,17 @@
     const past = all.filter((e) => A.endKey(e) < t).reverse();
     let html = '';
     if (upcoming.length) {
-      html += groupByMonth(upcoming);
+      html += groupByMonth(upcoming, true);
     } else {
       const what = state.category === 'todos' ? 'eventos' : `eventos de tipo «${esc(A.CATEGORIES[state.category])}»`;
-      html += `<div class="state"><strong>Nada programado por ahora</strong>Todavía no hay ${what} próximos. Vuelve pronto: la agenda se actualiza seguido.</div>`;
+      html += `<div class="state">${EMPTY_ART}<strong>Nada en cartelera por ahora</strong>Todavía no hay ${what} próximos. Suscríbete y lo que venga llegará solo a tu calendario.<br><button type="button" class="btn small" id="empty-subscribe">Suscribirme al calendario</button></div>`;
     }
     if (past.length) {
       html += `<button type="button" class="link-btn" id="toggle-past">${state.showPast ? 'Ocultar eventos pasados' : `Ver eventos pasados (${past.length})`}</button>`;
       if (state.showPast) html += groupByMonth(past);
     }
     main.innerHTML = html;
+    if ($('empty-subscribe')) $('empty-subscribe').onclick = openSubscribe;
     const tp = $('toggle-past');
     if (tp) tp.onclick = () => { state.showPast = !state.showPast; render(); };
   }
@@ -180,7 +199,7 @@
       const evs = byDay.get(state.selectedDay) || [];
       const name = A.cap(A.utcFmt({ weekday: 'long', day: 'numeric', month: 'long' }).format(A.keyDate(state.selectedDay)));
       below = `<h3 class="day-title">${name}</h3>` +
-        (evs.length ? `<ul class="events">${evs.map(card).join('')}</ul>` : '<p class="state">Sin eventos este día.</p>');
+        (evs.length ? `<ul class="events">${evs.map(card).join('')}</ul>` : '<p class="state">Día libre: no hay nada programado.</p>');
     }
 
     main.innerHTML = `

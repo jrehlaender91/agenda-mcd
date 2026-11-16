@@ -93,6 +93,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: -0.035em;
 }
 .masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-top: 16px; }
+.masthead-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.masthead-tools .btn { padding-block: 8px; }
 .today {
   display: inline-flex;
   align-items: center;
@@ -254,6 +256,34 @@ main.wrap { padding-block: 8px 64px; }
   object-fit: cover;
   background: var(--line);
 }
+
+/* Separador de hoy */
+.now {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 -2px;
+  font: 500 0.72rem var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--live);
+}
+.now::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.now::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.45; }
+.now.later { margin-top: 8px; color: var(--muted); }
+.now.later::before { display: none; }
+
+/* Entradas suaves */
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+@keyframes pop { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+@keyframes fade { from { opacity: 0; } }
+main.wrap > * { animation: rise 0.28s ease-out both; }
+dialog[open] { animation: pop 0.2s ease-out both; }
+dialog[open]::backdrop { animation: fade 0.2s ease-out both; }
+
+.state svg { display: block; width: 84px; height: 84px; margin: 0 auto 14px; color: var(--muted); }
+.state svg .hl { color: var(--accent); }
+.state .btn { margin-top: 16px; }
 
 /* Estado y carrera */
 .tagline { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
@@ -534,8 +564,8 @@ textarea.input { min-height: 120px; resize: vertical; }
 }
 
 @media (max-width: 560px) {
-  .event { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 14px; }
-  .event-thumb { display: none; }
+  .event { grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; padding: 14px; }
+  .event-thumb { width: 60px; height: 60px; border-radius: 8px; }
   .event-date .num { font-size: 1.85rem; }
   .cal-day { min-height: 52px; padding: 5px; align-items: center; }
   .cal-ev, .cal-more { display: none; }
@@ -544,9 +574,8 @@ textarea.input { min-height: 120px; resize: vertical; }
   .sheet { padding: 18px; }
   .admin-item { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .admin-item .ops { justify-content: flex-start; }
-  .toolbar .wrap { flex-wrap: wrap; justify-content: space-between; }
-  .chips { flex-basis: 100%; order: 2; }
+  .masthead-row { flex-direction: column; align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
+  * { transition: none !important; animation: none !important; }
 }
