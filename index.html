@@ -22,17 +22,12 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="masthead wrap">
-    <p class="dept">Departamento de Medios y Cultura Digital</p>
-    <h1>Agenda</h1>
-    <div class="masthead-row">
-      <p class="today" id="today"></p>
-      <div class="masthead-tools">
-        <div class="seg" id="career" role="group" aria-label="Filtrar por carrera">
-          <button type="button" data-career="todas" aria-pressed="true">Todas</button>
-          <button type="button" data-career="lc" aria-pressed="false">LC</button>
-          <button type="button" data-career="ltm" aria-pressed="false">LTM</button>
-        </div>
+  <header class="masthead">
+    <div class="wrap">
+      <p class="dept">Departamento de Medios y Cultura Digital</p>
+      <h1>Agenda</h1>
+      <div class="masthead-row">
+        <p class="today" id="today"></p>
         <button type="button" class="btn small" id="subscribe">Suscribirme al calendario</button>
       </div>
     </div>
@@ -40,11 +35,18 @@
 
   <div class="toolbar">
     <div class="wrap">
-      <div class="chips" id="chips" role="group" aria-label="Filtrar por tipo de evento"></div>
-      <div class="seg" role="group" aria-label="Cambiar vista">
-        <button type="button" id="view-list" aria-pressed="true">Lista</button>
-        <button type="button" id="view-month" aria-pressed="false">Mes</button>
+      <div class="toolbar-row">
+        <div class="seg" id="career" role="group" aria-label="Filtrar por carrera">
+          <button type="button" data-career="todas" aria-pressed="true">Todas</button>
+          <button type="button" data-career="lc" aria-pressed="false">LC</button>
+          <button type="button" data-career="ltm" aria-pressed="false">LTM</button>
+        </div>
+        <div class="seg" role="group" aria-label="Cambiar vista">
+          <button type="button" id="view-list" aria-pressed="true">Lista</button>
+          <button type="button" id="view-month" aria-pressed="false">Mes</button>
+        </div>
       </div>
+      <div class="chips" id="chips" role="group" aria-label="Filtrar por tipo de evento"></div>
     </div>
   </div>
 
