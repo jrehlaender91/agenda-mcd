@@ -78,7 +78,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* ── Encabezado ─────────────────────────────────────────── */
-.masthead { padding-block: 40px 20px; }
+.masthead { padding-block: 40px 20px; background: var(--surface); }
 .dept {
   margin: 0 0 6px;
   font-size: 0.8rem;
@@ -93,8 +93,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: -0.035em;
 }
 .masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-top: 16px; }
-.masthead-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.masthead-tools .btn { padding-block: 8px; }
+.masthead-row .btn { padding-block: 8px; }
 .today {
   display: inline-flex;
   align-items: center;
@@ -115,19 +114,25 @@ button, input, select, textarea { font: inherit; color: inherit; }
   position: sticky;
   top: 0;
   z-index: 5;
-  background: var(--bg);
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 .toolbar .wrap {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   padding-block: 10px;
+}
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .chips {
   display: flex;
   gap: 6px;
-  flex: 1;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
